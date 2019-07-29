@@ -23,5 +23,6 @@ fn main() {
     println!("Please input your string!");
     println!("Output: {}", services::strings::read_input());
 
-
+    println!("Hash map exercise");
+    services::hash_map::run();
 }
