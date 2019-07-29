@@ -8,7 +8,9 @@ pub fn run() {
     let mut company: HashMap<String, Vec<String>> = HashMap::new();
     show_employee_list();
     loop {
-        println!("If you want to add employee please type `A` or type `E` to exit or 'C' to continue:");
+        println!(
+            "If you want to add employee please type `A` or type `E` to exit or 'C' to continue:"
+        );
         let input_value = readline();
         match input_value {
             Ok(input) => {
@@ -17,10 +19,32 @@ pub fn run() {
                 match words.len() {
                     1 => {
                         if *words.get(0).unwrap() == 'a'.to_string() {
-                            unimplemented!();
+                            println!("Input ur employee!");
+                            match add_employee(
+                                &mut company,
+                                match readline() {
+                                    Ok(value) => value,
+                                    Err(e) => {
+                                        println!("Some error occurred: {}", e);
+                                        continue;
+                                    }
+                                },
+                            ) {
+                                Ok(_) => {
+                                    println!("Company structure: {:#?}", company);
+                                    continue;
+                                }
+                                Err(_) => {
+                                    println!("Incorrect string. Try again");
+                                    continue;
+                                }
+                            }
                         } else if *words.get(0).unwrap() == 'e'.to_string() {
                             break;
                         } else {
+                            println!("Input Department name or Full to show the list of employee");
+                            let default = "full".to_string();
+                            show_list(&readline().unwrap_or(default), &company);
                             continue;
                         }
                     }
@@ -32,7 +56,6 @@ pub fn run() {
             }
             Err(error) => panic!("Problem parse input: {:?}", error),
         }
-        break;
     }
 }
 
@@ -49,22 +72,56 @@ fn readline() -> Result<String, io::Error> {
     Ok(input)
 }
 
-fn some(company: &mut  HashMap<String, Vec<String>>, employee: String)-> Result<bool, io::Error> {
+fn add_employee(
+    company: &mut HashMap<String, Vec<String>>,
+    employee: String,
+) -> Result<bool, io::Error> {
     let employee = employee.to_lowercase();
     let words: Vec<&str> = employee.split_whitespace().collect();
     if words.len() == 4 {
-        let department = words.get(3).unwrap();
-        if company.contains_key(*department) {
-            let employees = company.get_mut(*department).unwrap();
-            employees.push(words.get(1).unwrap().to_string());
-        } else {
-            company.insert(
-                department.to_string(),
-                vec![words.get(1).unwrap().to_string()],
-            );
+        let department = words.get(3).unwrap().to_lowercase();
+        let departments: Vec<String> = DEPARTMENTS
+            .to_vec()
+            .iter()
+            .map(|x| x.to_lowercase())
+            .collect();
+        if departments.contains(&department) {
+            if company.contains_key(&*department) {
+                let employees = company.get_mut(&*department).unwrap();
+                employees.push(words.get(1).unwrap().to_string());
+            } else {
+                company.insert(
+                    department.to_string(),
+                    vec![words.get(1).unwrap().to_string()],
+                );
+            }
+            return Ok(true);
         }
-        Ok(true);
+    }
+    Err(io::Error::new(ErrorKind::InvalidInput, "Incorrect input!"))
+}
+
+fn show_list(input: &str, company: &HashMap<String, Vec<String>>) {
+    let departments: Vec<String> = DEPARTMENTS
+        .to_vec()
+        .iter()
+        .map(|x| x.to_lowercase())
+        .collect();
+    let input = input.trim().to_lowercase();
+    if departments.contains(&input) {
+        if company.contains_key(&input) {
+            let mut employees = company.get(&*input).unwrap().clone();
+            employees.sort();
+            println!("List: {:#?}", employees);
+        } else {
+            println!("No one employee in {} department", input);
+        }
     } else {
-        io::Error::new(ErrorKind::InvalidInput)
+        let mut employees_list: Vec<String> = vec![];
+        for employees in company.values() {
+            employees_list.extend(employees.clone());
+        }
+        employees_list.sort();
+        println!("List of campany's employees: {:#?}", employees_list);
     }
 }

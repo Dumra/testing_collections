@@ -9,12 +9,11 @@ pub fn read_input() -> String {
     string_converter(&input)
 }
 
-fn string_converter(input: &String) -> String {
+fn string_converter(input: &str) -> String {
     let mut output = String::new();
     for word in input.split_whitespace() {
-        let mut counter = 0;
         let mut end_of_word = String::new();
-        for char_in_word in word.to_lowercase().chars().into_iter() {
+        for (counter, char_in_word) in word.to_lowercase().chars().enumerate() {
             if counter == 0 {
                 match char_in_word {
                     'a' | 'e' | 'i' | 'o' | 'u' | 'y' => {
@@ -25,7 +24,6 @@ fn string_converter(input: &String) -> String {
             } else {
                 output.push(char_in_word);
             }
-            counter += 1;
         }
         output.push_str(end_of_word.as_str());
     }
